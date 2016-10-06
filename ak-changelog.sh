@@ -12,12 +12,14 @@
 
 # colorize and add text parameters
 grn=$(tput setaf 2)             # green
+yellow=$(tput setaf 3)             # yellow
 bldgrn=${txtbld}$(tput setaf 2) # bold green
 red=$(tput setaf 1)             # red
 txtbld=$(tput bold)             # bold
 bldblu=${txtbld}$(tput setaf 4) # bold blue
 blu=$(tput setaf 4)             # blue
 txtrst=$(tput sgr0)             # reset
+blink=$(tput blink)             # blink
 
 # variables
 rdir=`pwd`
@@ -41,7 +43,7 @@ echo "                                                    ";
 echo -e "${txtrst}"
 
 # generate changelog
-echo -e "${blu} * Generating Changelog ${txtrst}"; echo "";
+echo -e "${blink}${bldblu} *** Generating Changelog ${txtrst}"; echo "";
 if [ -z "$CUSTOM_DATE" ]; then
     if [ -z "$LAST_DATE" ]; then
         WORKING_DATE=`date +%s "1 day ago"`
@@ -57,7 +59,7 @@ CHANGELOG=$rdir/changelog_${CURRENT_DATE}.txt
 # remove existing changelog
 file="$CHANGELOG"
 if [ -f "$file" ]; then
-    echo -e "${red} * Removing Old Changelog${txtrst}"; echo"";
+    echo -e "${txtbld}${red} *** Removing Old Changelog${txtrst}"; echo"";
     rm $CHANGELOG;
 fi
 
@@ -70,7 +72,8 @@ do
     project=$(git remote -v | grep -i origin | head -n1 | awk '{print $2}' | sed 's/.*\///' | sed 's/\.git//')
     if [ ! -z "$log" ]; then
         # write the changelog
-	echo -e "${grn} * $project Is Updated ${txtrst}"; echo "";
+	echo -e "${txtbld}${yellow} *** Verify Changelog Status ${txtrst}";
+	echo -e "${grn}   ----> $project: is Updated ${txtrst}"; echo "";
         echo "" >> $CHANGELOG;
 	echo "Project name: $project" >> $CHANGELOG;
         echo "$log" | while read line
