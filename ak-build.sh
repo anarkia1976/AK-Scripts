@@ -1,38 +1,41 @@
 #!/bin/bash
 
-# Bash Color
+#************************************************#
+#                                                #
+#                   AK Kernel                    #
+#               release generator                #
+#                by @anarkia1976                 #
+#                                                #
+#************************************************#
+
+# colors
 green='\033[01;32m'
 red='\033[01;31m'
 blink_red='\033[05;31m'
 restore='\033[0m'
 
-clear
-
-# Resources
+# path and resources
 THREAD="-j$(grep -c ^processor /proc/cpuinfo)"
 KERNEL="Image.gz"
 DTBIMAGE="dtb"
 DEFCONFIG="ak_angler_defconfig"
 KERNEL_DIR=`pwd`
-ANYKERNEL_DIR="$RESOURCE_DIR/AK-UnicornBlood-AnyKernel2"
-ZIP_MOVE="$RESOURCE_DIR/AK-releases"
+ZIMAGE_DIR="arch/arm64/boot"
+ANYKERNEL_DIR="AK-UnicornBlood-AnyKernel2"
+OUT_DIR="AK-releases"
+TOOLCHAIN_DIR="AK-uber64-4.9"
 
-# Paths
-REPACK_DIR="$ANYKERNEL_DIR"
-PATCH_DIR="$ANYKERNEL_DIR/patch"
-MODULES_DIR="$ANYKERNEL_DIR/modules"
-ZIMAGE_DIR="$KERNEL_DIR/arch/arm64/boot"
-TOOLCHAIN_DIR="$KERNEL_DIR/.."
-RESOURCE_DIR="$KERNEL_DIR/.."
+ANYKERNEL_TOOLS_DIR="$KERNEL_DIR/../$ANYKERNEL_DIR/tools"
+ANYKERNEL_MODULE_DIR="$KERNEL_DIR/../$ANYKERNEL_DIR/modules"
+ANYKERNEL_REPACK_DIR="$KERNEL_DIR/../$ANYKERNEL_DIR"
+ANYKERNEL_OUT_DIR="$KERNEL_DIR/../$OUT_DIR"
 
-# Kernel Details
-BASE_AK_VER="AK"
-VER=".003.N.ANGLER"
-AK_VER="$BASE_AK_VER$VER"
+# kernel release version
+AK_VER="AK.003.N.ANGLER"
 
-# Vars
+# vars
 export LOCALVERSION=~`echo $AK_VER`
-export CROSS_COMPILE="$TOOLCHAIN_DIR/AK-uber64-4.9/bin/aarch64-linux-android-"
+export CROSS_COMPILE="$KERNEL_DIR/../$TOOLCHAIN_DIR/bin/aarch64-linux-android-"
 export ARCH=arm64
 export SUBARCH=arm64
 export KBUILD_BUILD_USER=ak
@@ -41,10 +44,10 @@ export KBUILD_BUILD_HOST=kernel
 # Functions
 function clean_all {
 		#echo; ccache -c -C echo;
-		if [ -f "$MODULES_DIR/*.ko" ]; then
-			rm `echo $MODULES_DIR"/*.ko"`
+		if [ -f "$ANYKERNEL_MODULE_DIR/*.ko" ]; then
+			rm `echo $ANYKERNEL_MODULE_DIR"/*.ko"`
 		fi
-		cd $REPACK_DIR
+		cd $ANYKERNEL_REPACK_DIR
 		rm -rf zImage
 		rm -rf $DTBIMAGE
 		git reset --hard > /dev/null 2>&1
@@ -58,29 +61,30 @@ function make_kernel {
 		echo
 		make $DEFCONFIG
 		make $THREAD
-		cp -vr $ZIMAGE_DIR/$KERNEL $REPACK_DIR/zImage
+		cp -vr $ZIMAGE_DIR/$KERNEL $ANYKERNEL_REPACK_DIR/zImage
 }
 
 function make_modules {
-		if [ -f "$MODULES_DIR/*.ko" ]; then
-			rm `echo $MODULES_DIR"/*.ko"`
+		if [ -f "$ANYKERNEL_MODULE_DIR/*.ko" ]; then
+			rm `echo $ANYKERNEL_MODULE_DIR"/*.ko"`
 		fi
-		#find $MODULES_DIR/proprietary -name '*.ko' -exec cp -v {} $MODULES_DIR \;
-		find $KERNEL_DIR -name '*.ko' -exec cp -v {} $MODULES_DIR \;
+		find $KERNEL_DIR -name '*.ko' -exec cp -v {} $ANYKERNEL_MODULE_DIR \;
 }
 
 function make_dtb {
-		$REPACK_DIR/tools/dtbToolCM -v2 -o $REPACK_DIR/$DTBIMAGE -s 2048 -p scripts/dtc/ arch/arm64/boot/dts/
+		$ANYKERNEL_TOOLS_DIR/dtbToolCM -v2 -o $ANYKERNEL_REPACK_DIR/$DTBIMAGE -s 2048 -p scripts/dtc/ arch/arm64/boot/dts/
 }
 
 function make_zip {
-		cd $REPACK_DIR
+		cd $ANYKERNEL_REPACK_DIR
 		zip -x@zipexclude -r9 `echo $AK_VER`.zip *
-		mv  `echo $AK_VER`.zip $ZIP_MOVE
+		mv  `echo $AK_VER`.zip $ANYKERNEL_OUT_DIR
 		cd $KERNEL_DIR
 }
 
 DATE_START=$(date +"%s")
+
+clear
 
 echo -e "${green}"
 echo "                                            ";
