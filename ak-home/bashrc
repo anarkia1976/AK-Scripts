@@ -1,0 +1,60 @@
+#************************************************#
+#                                                #
+#                    AK Linux                    #
+#                 bashrc modding                 #
+#                by @anarkia1976                 #
+#                                                #
+#************************************************#
+
+# colors
+yellow='\033[01;33m'
+green='\033[01;32m'
+red='\033[01;31m'
+blink_red='\033[05;31m'
+restore='\033[0m'
+
+# alias settings
+alias pacup="sudo pacman -Syu"
+alias pacopt="sudo pacman-optimize && sync"
+alias aup="yaourt -Syu --aur"
+alias ll="ls -lrtah"
+
+export VISUAL="vim"
+
+if [ -f ~/.git-completion.bash ]; then
+  . ~/.git-completion.bash
+fi
+
+# repo path
+export LANG=C
+PATH=~/bin:$PATH
+
+# android build
+export JACK_SERVER_VM_ARGUMENTS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4096m"
+/home/ak/ak-backup/rom/du/prebuilts/sdk/tools/jack-admin kill-server &>/dev/null
+/home/ak/ak-backup/rom/du/prebuilts/sdk/tools/jack-admin start-server &>/dev/null
+
+# per GPG e GIT
+export GPG_TTY=$(tty)
+
+# ccache settings
+export CCACHE_DIR=~/.ccache
+export USE_CCACHE=1
+ccache -M 50G
+
+# android sdk home
+export ANDROID_HOME="/home/ak/Android/Sdk/"
+
+# gem ruby path
+if which ruby >/dev/null && which gem >/dev/null; then
+	PATH="$(ruby -rubygems -e 'puts Gem.user_dir')/bin:$PATH"
+fi
+
+# motd
+echo
+echo -e "${green}"; figlet -f smslant -l Welcome Back Jedi; echo -e "${restore}";
+screenfetch
+echo -e "${green}"; figlet -f smslant -l Tip Of The Day; echo -e "${restore}";
+command fortune -a | fmt -80 -s | $(shuf -n 1 -e cowsay cowthink) -$(shuf -n 1 -e b d g p s t w y) -f $(shuf -n 1 -e $(cowsay -l | tail -n +2)) -n
+echo
+echo
