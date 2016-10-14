@@ -17,23 +17,26 @@ red='\033[01;31m'
 blink_red='\033[05;31m'
 restore='\033[0m'
 
-# path and resources
+# resources
+KERNEL_DIR=`pwd`
 THREAD="-j$(grep -c ^processor /proc/cpuinfo)"
 KERNEL="Image.gz"
-DTBIMAGE="dtb"
+DTB="dtb"
 DEFCONFIG="ak_angler_defconfig"
-KERNEL_DIR=`pwd`
+
+# extra paths
 ZIMAGE_DIR="arch/arm64/boot"
-ANYKERNEL_DIR="AK-UnicornBlood-AnyKernel2"
 OUT_DIR="AK-releases"
 TOOLCHAIN_DIR="AK-uber64-4.9-linaro"
 
+# anykernel paths
+ANYKERNEL_DIR="AK-UnicornBlood-AnyKernel2"
 ANYKERNEL_TOOLS_DIR="$KERNEL_DIR/../$ANYKERNEL_DIR/tools"
 ANYKERNEL_MODULE_DIR="$KERNEL_DIR/../$ANYKERNEL_DIR/modules"
 ANYKERNEL_REPACK_DIR="$KERNEL_DIR/../$ANYKERNEL_DIR"
 ANYKERNEL_OUT_DIR="$KERNEL_DIR/../$OUT_DIR"
 
-# kernel release version
+# kernel release
 AK_VER="AK.666.N.ANGLER"
 
 # vars
@@ -124,7 +127,7 @@ function clean_all {
 		fi
 		cd $ANYKERNEL_REPACK_DIR
 		rm -rf zImage
-		rm -rf $DTBIMAGE
+		rm -rf $DTB
 		git reset --hard > /dev/null 2>&1
 		git clean -f -d > /dev/null 2>&1
 		cd $KERNEL_DIR
@@ -145,7 +148,7 @@ function make_modules {
 }
 
 function make_dtb {
-		$ANYKERNEL_TOOLS_DIR/dtbToolCM -v2 -o $ANYKERNEL_REPACK_DIR/$DTBIMAGE -s 2048 -p scripts/dtc/ arch/arm64/boot/dts/  > /dev/null 2>&1
+		$ANYKERNEL_TOOLS_DIR/dtbToolCM -v2 -o $ANYKERNEL_REPACK_DIR/$DTB -s 2048 -p scripts/dtc/ arch/arm64/boot/dts/  > /dev/null 2>&1
 }
 
 function make_zip {
