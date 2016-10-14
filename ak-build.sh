@@ -26,7 +26,11 @@ red='\033[01;31m'
 blink_red='\033[05;31m'
 restore='\033[0m'
 
+# kernel release
+AK_VER="AK.666.N.ANGLER"
+
 # resources
+CURRENT_DATE=`date +%Y%m%d`
 KERNEL_DIR=`pwd`
 THREAD="-j$(grep -c ^processor /proc/cpuinfo)"
 KERNEL="Image.gz"
@@ -34,6 +38,7 @@ DTB="dtb"
 DEFCONFIG="ak_angler_defconfig"
 
 # extra paths
+BUILD_LOG="/tmp/${AK_VER}_${CURRENT_DATE}.log"
 ZIMAGE_DIR="arch/arm64/boot"
 OUT_DIR="AK-releases"
 TOOLCHAIN_DIR="AK-uber64-4.9-linaro"
@@ -44,9 +49,6 @@ ANYKERNEL_TOOLS_DIR="$KERNEL_DIR/../$ANYKERNEL_DIR/tools"
 ANYKERNEL_MODULE_DIR="$KERNEL_DIR/../$ANYKERNEL_DIR/modules"
 ANYKERNEL_REPACK_DIR="$KERNEL_DIR/../$ANYKERNEL_DIR"
 ANYKERNEL_OUT_DIR="$KERNEL_DIR/../$OUT_DIR"
-
-# kernel release
-AK_VER="AK.666.N.ANGLER"
 
 # vars
 export LOCALVERSION=~`echo $AK_VER`
@@ -131,39 +133,36 @@ function stop_spinner {
 
 
 function clean_all {
-		if [ -f "$ANYKERNEL_MODULE_DIR/*.ko" ]; then
-			rm `echo $ANYKERNEL_MODULE_DIR"/*.ko"` > /dev/null 2>&1
-		fi
 		cd $ANYKERNEL_REPACK_DIR
+		rm -rf modules/*.ko
 		rm -rf zImage
 		rm -rf $DTB
-		git reset --hard > /dev/null 2>&1
-		git clean -f -d > /dev/null 2>&1
+		git reset --hard >> $BUILD_LOG 2>&1
+		git clean -f -d >> $BUILD_LOG 2>&1
 		cd $KERNEL_DIR
-		make clean > /dev/null 2>&1 && make mrproper > /dev/null 2>&1
+		make clean >> $BUILD_LOG 2>&1
+		make mrproper >> $BUILD_LOG 2>&1
 }
 
 function make_kernel {
-		make $DEFCONFIG > /dev/null 2>&1
-		make $THREAD > /dev/null 2>&1
-		cp -vr $ZIMAGE_DIR/$KERNEL $ANYKERNEL_REPACK_DIR/zImage > /dev/null 2>&1
+		make $DEFCONFIG >> $BUILD_LOG 2>&1
+		make $THREAD >> $BUILD_LOG 2>&1
+		cp -vr $ZIMAGE_DIR/$KERNEL $ANYKERNEL_REPACK_DIR/zImage >> $BUILD_LOG 2>&1
 }
 
 function make_modules {
-		if [ -f "$ANYKERNEL_MODULE_DIR/*.ko" ]; then
-			rm `echo $ANYKERNEL_MODULE_DIR"/*.ko"` > /dev/null 2>&1
-		fi
-		find $KERNEL_DIR -name '*.ko' -exec cp -v {} $ANYKERNEL_MODULE_DIR \; > /dev/null 2>&1
+		rm -rf $ANYKERNEL_MODULE_DIR/*.ko
+		find $KERNEL_DIR -name '*.ko' -exec cp -v {} $ANYKERNEL_MODULE_DIR \; >> $BUILD_LOG 2>&1
 }
 
 function make_dtb {
-		$ANYKERNEL_TOOLS_DIR/dtbToolCM -v2 -o $ANYKERNEL_REPACK_DIR/$DTB -s 2048 -p scripts/dtc/ arch/arm64/boot/dts/  > /dev/null 2>&1
+		$ANYKERNEL_TOOLS_DIR/dtbToolCM -v2 -o $ANYKERNEL_REPACK_DIR/$DTB -s 2048 -p scripts/dtc/ arch/arm64/boot/dt/ >> $BUILD_LOG 2>&1
 }
 
 function make_zip {
 		cd $ANYKERNEL_REPACK_DIR
-		zip -x@zipexclude -r9 `echo $AK_VER`.zip * > /dev/null 2>&1
-		mv  `echo $AK_VER`.zip $ANYKERNEL_OUT_DIR > /dev/null 2>&1
+		zip -x@zipexclude -r9 `echo $AK_VER`.zip * >> $BUILD_LOG 2>&1
+		mv  `echo $AK_VER`.zip $ANYKERNEL_OUT_DIR >> $BUILD_LOG 2>&1
 		cd $KERNEL_DIR
 }
 
