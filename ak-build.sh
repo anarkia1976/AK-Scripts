@@ -21,10 +21,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 # colors
-green='\033[01;32m'
-red='\033[01;31m'
-blink_red='\033[05;31m'
-restore='\033[0m'
+white="\e[1;37m"
+green="\e[1;32m"
+red="\e[1;31m"
+restore="\e[0m"
+blink_red="\e[05;31m"
+bold="\e[1m"
+invert="\e[7m"
 
 # kernel release
 AK_VER="AK.666.N.ANGLER"
@@ -67,25 +70,21 @@ function _spinner() {
     # on stop : $2 process exit status
     #           $3 spinner function pid (supplied from stop_spinner)
 
-    local on_success="DONE"
-    local on_fail="FAIL"
-    local white="\e[1;37m"
-    local green="\e[1;32m"
-    local red="\e[1;31m"
-    local nc="\e[0m"
+    local on_success="SUCCESS"
+    local on_fail="FAILED"
 
     case $1 in
         start)
             # calculate the column where spinner and status msg will be displayed
             let column=$(tput cols)-${#2}-256
             # display message and position the cursor in $column column
-            echo -ne ${2}
+            echo -ne "     ... ${2}"
             printf "%${column}s"
 
             # start spinner
             i=1
             sp='\|/-'
-            delay=0.15
+            delay=0.3
 
             while :
             do
@@ -104,9 +103,9 @@ function _spinner() {
             # inform the user uppon success or failure
             echo -en "\b[ "
             if [[ $2 -eq 0 ]]; then
-                echo -en "${green}${on_success}${nc}"
+                echo -en "${green}${on_success}${restore}"
             else
-                echo -en "${red}${on_fail}${nc}"
+                echo -en "${red}${on_fail}${restore}"
             fi
             echo -e " ]"
             ;;
@@ -170,36 +169,69 @@ DATE_START=$(date +"%s")
 
 clear
 
-echo -e "${green}"
-echo "                                            ";
-echo "   ___   __     __ __                 __    ";
-echo "  / _ | / /__  / //_/__ ___  _______ / /    ";
-echo " / __ |/  '_/ / ,< / -_) _ \/ __/ -_) /     ";
-echo "/_/ |_/_/\_\ /_/|_|\__/_//_/_/  \__/_/      ";
-echo "    / ___/__ ___  ___ _______ _/ /____  ____";
-echo "   / (_ / -_) _ \/ -_) __/ _ \`/ __/ _ \/ __/";
-echo "   \___/\__/_//_/\__/_/  \_,_/\__/\___/_/   ";
-echo "                                            ";
-echo "                                            ";
+echo
+echo -en "${white}"
+echo '============================================'
+echo
+echo -en "${red}"
+echo '                      :::!~!!!!!:.'
+echo '                  .xUHWH!! !!?M88WHX:.'
+echo '                .X*#M@$!!  !X!M$$$$$$WWx:.'
+echo '               :!!!!!!?H! :!$!$$$$$$$$$$8X:'
+echo '              !!~  ~:~!! :~!$!#$$$$$$$$$$8X:'
+echo '             :!~::!H!<   ~.U$X!?R$$$$$$$$MM!'
+echo '             ~!~!!!!~~ .:XW$$$U!!?$$$$$$RMM!'
+echo '               !:~~~ .:!M"T#$$$$WX??#MRRMMM!'
+echo '               ~?WuxiW*`   `"#$$$$8!!!!??!!!'
+echo '             :X- M$$$$       `"T#$T~!8$WUXU~'
+echo '            :%`  ~#$$$m:        ~!~ ?$$$$$$'
+echo '          :!`.-   ~T$$$$8xx.  .xWW- ~""##*'
+echo '.....   -~~:<` !    ~?T#$$@@W@*?$$      /`'
+echo 'W$@@M!!! .!~~ !!     .:XUW$W!~ `"~:    :'
+echo '#"~~`.:x%`!!  !H:   !WM$$$$Ti.: .!WUn+!`'
+echo ':::~:!!`:X~ .: ?H.!u "$$$B$$$!W:U!T$$M~'
+echo '.~~   :X@!.-~   ?@WTWo("*$$$W$TH$! `'
+echo 'Wi.~!X$?!-~    : ?$$$B$Wu("**$RM!'
+echo '$R@i.~~ !     :   ~$$$$$B$$en:``'
+echo '?MXT@Wx.~    :     ~"##*$$$$M~'
+echo
+echo -en "${restore}"
+echo -en "${white}"
+echo '============================================'
+echo ' AK KERNEL GENERATOR                        '
+echo '============================================'
+echo -en "${restore}"
+echo
+echo
+echo
+echo -en "${white}"
+echo '============================================'
+echo ' BUILD VERSION                              '
+echo '============================================'
+echo -en "${restore}"
+echo
+echo -en " ${bold}${blink_red}$AK_VER${restore}"
+echo
+echo
+echo -en "${white}"
+echo '============================================'
+echo -en "${restore}"
+echo
+echo
+echo
 
-echo "----------------"
-echo " Kernel Release"
-echo "----------------"
-
-echo -e "${red}"; echo -e "${blink_red}"; echo " $AK_VER"; echo -e "${restore}";
-
-echo -e "${green}"
-echo "---------------"
-echo " Making Kernel "
-echo "---------------"
-echo -e "${restore}"
-
-while read -p "Do you want to clean stuffs (y/n)? " cchoice
+echo -en "${white}"
+echo '============================================'
+echo ' CLEANING                                   '
+echo '============================================'
+echo -en "${restore}"
+echo
+while read -p " Y / N : " cchoice
 do
 case "$cchoice" in
 	y|Y )
 		echo
-		start_spinner CLEANING
+		start_spinner CLEANING 
 		clean_all
 		stop_spinner ALL DONE
 		break
@@ -209,15 +241,26 @@ case "$cchoice" in
 		;;
 	* )
 		echo
-		echo "Invalid try again!"
+		echo "     ... INVALID TRY AGAIN ..."
 		echo
 		;;
 esac
 done
-
+echo
+echo -en "${white}"
+echo '============================================'
+echo -en "${restore}"
+echo
+echo
 echo
 
-while read -p "Do you want to build kernel (y/n)? " dchoice
+echo -en "${white}"
+echo '============================================'
+echo ' BUILDING                                   '
+echo '============================================'
+echo -en "${restore}"
+echo
+while read -p " Y / N : " dchoice
 do
 case "$dchoice" in
 	y|Y)
@@ -235,20 +278,33 @@ case "$dchoice" in
 		;;
 	* )
 		echo
-		echo "Invalid try again!"
+		echo "     ... INVALID TRY AGAIN ..."
 		echo
 		;;
 esac
 done
+echo
+echo -en "${white}"
+echo '============================================'
+echo -en "${restore}"
+echo
+echo
+echo
 
-echo -e "${green}"
-echo "-----------------"
-echo " Build Completed "
-echo "-----------------"
-echo -e "${restore}"
-
+echo -en "${white}"
+echo '============================================'
+echo ' ALL DONE                                   '
+echo '============================================'
+echo -en "${restore}"
+echo
 DATE_END=$(date +"%s")
 DIFF=$(($DATE_END - $DATE_START))
 echo "Time: $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) seconds."
+echo
+echo -en "${white}"
+echo '============================================'
+echo -en "${restore}"
+echo
+echo
 echo
 
