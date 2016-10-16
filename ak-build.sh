@@ -29,33 +29,35 @@ blink_red="\e[05;31m"
 bold="\e[1m"
 invert="\e[7m"
 
-# kernel release
-AK_VER="AK.666.N.ANGLER"
+# kernel version
+KERNEL="AK"
+VERSION="666"
+BASE="N"
+DEVICE="ANGLER"
+RELEASE="${KERNEL}.${VERSION}.${BASE}.${DEVICE}"
 
-# resources
+# local variables
 CURRENT_DATE=`date +%Y%m%d`
-KERNEL_DIR=`pwd`
+BUILD_LOG="/tmp/${RELEASE}_${CURRENT_DATE}.log"
 THREAD="-j$(grep -c ^processor /proc/cpuinfo)"
-KERNEL="Image.gz"
+
+# kernel resources
+ZIMAGE="Image.gz"
+ZIMAGE_LOCATION="arch/arm64/boot"
 DTB="dtb"
 DEFCONFIG="ak_angler_defconfig"
+TOOLCHAIN_CC="bin/aarch64-linux-android-"
 
-# extra paths
-BUILD_LOG="/tmp/${AK_VER}_${CURRENT_DATE}.log"
-ZIMAGE_DIR="arch/arm64/boot"
-OUT_DIR="AK-releases"
+# path locations
+SOURCE_DIR="${HOME}/android"
+KERNEL_DIR="AK-UnicornBlood"
+ANYKERNEL_DIR="AK-UnicornBlood-AnyKernel2"
+OUTPUT_DIR="AK-releases"
 TOOLCHAIN_DIR="AK-uber64-4.9-linaro"
 
-# anykernel paths
-ANYKERNEL_DIR="AK-UnicornBlood-AnyKernel2"
-ANYKERNEL_TOOLS_DIR="$KERNEL_DIR/../$ANYKERNEL_DIR/tools"
-ANYKERNEL_MODULE_DIR="$KERNEL_DIR/../$ANYKERNEL_DIR/modules"
-ANYKERNEL_REPACK_DIR="$KERNEL_DIR/../$ANYKERNEL_DIR"
-ANYKERNEL_OUT_DIR="$KERNEL_DIR/../$OUT_DIR"
-
-# vars
-export LOCALVERSION=~`echo $AK_VER`
-export CROSS_COMPILE="$KERNEL_DIR/../$TOOLCHAIN_DIR/bin/aarch64-linux-android-"
+# shell export
+export LOCALVERSION=~`echo ${RELEASE}`
+export CROSS_COMPILE="${SOURCE_DIR}/${TOOLCHAIN_DIR}/${TOOLCHAIN_CC}"
 export ARCH=arm64
 export SUBARCH=arm64
 export KBUILD_BUILD_USER=ak
@@ -132,37 +134,38 @@ function stop_spinner {
 
 
 function clean_all {
-		cd $ANYKERNEL_REPACK_DIR
-		rm -rf modules/*.ko
-		rm -rf zImage
-		rm -rf $DTB
-		git reset --hard >> $BUILD_LOG 2>&1
-		git clean -f -d >> $BUILD_LOG 2>&1
-		cd $KERNEL_DIR
-		make clean >> $BUILD_LOG 2>&1
-		make mrproper >> $BUILD_LOG 2>&1
+    cd ${SOURCE_DIR}/${ANYKERNEL_DIR}
+    rm -rf modules/*.ko
+    rm -rf zImage
+    rm -rf ${DTB}
+    git reset --hard >> ${BUILD_LOG} 2>&1
+    git clean -f -d >> ${BUILD_LOG} 2>&1
+    cd ${SOURCE_DIR}/${KERNEL_DIR}
+    make clean >> ${BUILD_LOG} 2>&1
+    make mrproper >> ${BUILD_LOG} 2>&1
 }
 
 function make_kernel {
-		make $DEFCONFIG >> $BUILD_LOG 2>&1
-		make $THREAD >> $BUILD_LOG 2>&1
-		cp -vr $ZIMAGE_DIR/$KERNEL $ANYKERNEL_REPACK_DIR/zImage >> $BUILD_LOG 2>&1
+    cd ${SOURCE_DIR}/${KERNEL_DIR}
+    make ${DEFCONFIG} >> ${BUILD_LOG} 2>&1
+    make ${THREAD} >> ${BUILD_LOG} 2>&1
+    cp -vr ${ZIMAGE_LOCATION}/${ZIMAGE} ${SOURCE_DIR}/${ANYKERNEL_DIR}/zImage >> ${BUILD_LOG} 2>&1
 }
 
 function make_modules {
-		rm -rf $ANYKERNEL_MODULE_DIR/*.ko
-		find $KERNEL_DIR -name '*.ko' -exec cp -v {} $ANYKERNEL_MODULE_DIR \; >> $BUILD_LOG 2>&1
+    rm -rf ${SOURCE_DIR}/${ANYKERNEL_DIR}/modules/*.ko
+    find ${SOURCE_DIR}/${KERNEL_DIR} -name '*.ko' -exec cp -v {} ${SOURCE_DIR}/${ANYKERNEL_DIR}/modules \; >> ${BUILD_LOG} 2>&1
 }
 
 function make_dtb {
-		$ANYKERNEL_TOOLS_DIR/dtbToolCM -v2 -o $ANYKERNEL_REPACK_DIR/$DTB -s 2048 -p scripts/dtc/ arch/arm64/boot/dt/ >> $BUILD_LOG 2>&1
+    ${SOURCE_DIR}/${ANYKERNEL_DIR}/tools/dtbToolCM -v2 -o ${SOURCE_DIR}/${ANYKERNEL_DIR}/${DTB} -s 2048 -p scripts/dtc/ ${ZIMAGE_LOCATION}/dts/ >> ${BUILD_LOG} 2>&1
 }
 
 function make_zip {
-		cd $ANYKERNEL_REPACK_DIR
-		zip -x@zipexclude -r9 `echo $AK_VER`.zip * >> $BUILD_LOG 2>&1
-		mv  `echo $AK_VER`.zip $ANYKERNEL_OUT_DIR >> $BUILD_LOG 2>&1
-		cd $KERNEL_DIR
+    cd ${SOURCE_DIR}/${ANYKERNEL_DIR}
+    zip -x@zipexclude -r9 `echo ${RELEASE}`.zip * >> $BUILD_LOG 2>&1
+    mv  `echo ${RELEASE}`.zip ${SOURCE_DIR}/${OUTPUT_DIR} >> ${BUILD_LOG} 2>&1
+    cd ${SOURCE_DIR}/${KERNEL_DIR}
 }
 
 DATE_START=$(date +"%s")
@@ -210,7 +213,7 @@ echo ' BUILD VERSION                              '
 echo '============================================'
 echo -en "${restore}"
 echo
-echo -en " ${bold}${blink_red}$AK_VER${restore}"
+echo -en " ${bold}${blink_red}${RELEASE}${restore}"
 echo
 echo
 echo -en "${white}"
@@ -219,7 +222,6 @@ echo -en "${restore}"
 echo
 echo
 echo
-
 echo -en "${white}"
 echo '============================================'
 echo ' CLEANING                                   '
@@ -228,7 +230,7 @@ echo -en "${restore}"
 echo
 while read -p " Y / N : " cchoice
 do
-case "$cchoice" in
+case "${cchoice}" in
 	y|Y )
 		echo
 		start_spinner CLEANING 
@@ -253,7 +255,6 @@ echo -en "${restore}"
 echo
 echo
 echo
-
 echo -en "${white}"
 echo '============================================'
 echo ' BUILDING                                   '
@@ -262,7 +263,7 @@ echo -en "${restore}"
 echo
 while read -p " Y / N : " dchoice
 do
-case "$dchoice" in
+case "${dchoice}" in
 	y|Y)
 		echo
 		start_spinner BUILDING
@@ -307,4 +308,3 @@ echo -en "${restore}"
 echo
 echo
 echo
-
