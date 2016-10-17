@@ -24,6 +24,9 @@
 white="\e[1;37m"
 green="\e[1;32m"
 red="\e[1;31m"
+magenta="\e[1;35m"
+cyan="\e[1;36m"
+yellow="\e[1;33m"
 restore="\e[0m"
 blink_red="\e[05;31m"
 bold="\e[1m"
@@ -132,7 +135,6 @@ function stop_spinner {
     unset _sp_pid
 }
 
-
 function clean_all {
     cd ${SOURCE_DIR}/${ANYKERNEL_DIR}
     rm -rf modules/*.ko
@@ -228,7 +230,7 @@ echo ' CLEANING                                   '
 echo '============================================'
 echo -en "${restore}"
 echo
-while read -p " Y / N : " cchoice
+while read -p "` echo -e " ${red}Y / N${restore} : "`" cchoice
 do
 case "${cchoice}" in
 	y|Y )
@@ -261,7 +263,7 @@ echo ' BUILDING                                   '
 echo '============================================'
 echo -en "${restore}"
 echo
-while read -p " Y / N : " dchoice
+while read -p "` echo -e " ${red}Y / N${restore} : "`" dchoice
 do
 case "${dchoice}" in
 	y|Y)
@@ -291,7 +293,6 @@ echo -en "${restore}"
 echo
 echo
 echo
-
 echo -en "${white}"
 echo '============================================'
 echo ' ALL DONE                                   '
@@ -299,8 +300,12 @@ echo '============================================'
 echo -en "${restore}"
 echo
 DATE_END=$(date +"%s")
-DIFF=$(($DATE_END - $DATE_START))
-echo "Time: $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) seconds."
+DIFF=$((${DATE_END} - ${DATE_START}))
+echo -e "${red}DEVICE${restore}  : ${DEVICE}"
+echo -e "${red}VERSION${restore} : v.${VERSION}"
+echo -e "${red}BASE${restore}    : ${BASE}"
+echo -e "${red}BUILD${restore}   : $((${DIFF} / 60)) minute(s) and $((${DIFF} % 60)) second(s)"
+echo -e "${red}LOG DIR${restore} : ${BUILD_LOG}"
 echo
 echo -en "${white}"
 echo '============================================'
