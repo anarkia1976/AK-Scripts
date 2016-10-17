@@ -81,7 +81,7 @@ function _spinner() {
     case $1 in
         start)
             # calculate the column where spinner and status msg will be displayed
-            let column=$(tput cols)-${#2}-256
+            let column=$(tput cols)-${#2}-260
             # display message and position the cursor in $column column
             echo -ne "     ... ${2}"
             printf "%${column}s"
@@ -89,7 +89,7 @@ function _spinner() {
             # start spinner
             i=1
             sp='\|/-'
-            delay=0.3
+            delay=0.15
 
             while :
             do
