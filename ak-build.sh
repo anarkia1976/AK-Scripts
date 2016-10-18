@@ -41,7 +41,8 @@ RELEASE="${KERNEL}.${VERSION}.${BASE}.${DEVICE}"
 
 # local variables
 CURRENT_DATE=`date +%Y%m%d`
-BUILD_LOG="/tmp/${RELEASE}_${CURRENT_DATE}.log"
+CURRENT_TIME=`date +%H-%M-%S`
+BUILD_LOG="/tmp/${CURRENT_DATE}_${CURRENT_TIME}_${RELEASE}.log"
 THREAD="-j$(grep -c ^processor /proc/cpuinfo)"
 
 # kernel resources
@@ -81,7 +82,7 @@ function _spinner() {
     case $1 in
         start)
             # calculate the column where spinner and status msg will be displayed
-            let column=$(tput cols)-${#2}-260
+            let column=$(tput cols)-${#2}-256
             # display message and position the cursor in $column column
             echo -ne "     ... ${2}"
             printf "%${column}s"
@@ -140,37 +141,41 @@ function clean_all {
     rm -rf modules/*.ko
     rm -rf zImage
     rm -rf ${DTB}
-    git reset --hard >> ${BUILD_LOG} 2>&1
-    git clean -f -d >> ${BUILD_LOG} 2>&1
+    git reset --hard
+    git clean -f -d
     cd ${SOURCE_DIR}/${KERNEL_DIR}
-    make clean >> ${BUILD_LOG} 2>&1
-    make mrproper >> ${BUILD_LOG} 2>&1
-}
+    make clean
+    make mrproper
+} &>>$BUILD_LOG
 
 function make_kernel {
     cd ${SOURCE_DIR}/${KERNEL_DIR}
-    make ${DEFCONFIG} >> ${BUILD_LOG} 2>&1
-    make ${THREAD} >> ${BUILD_LOG} 2>&1
-    cp -vr ${ZIMAGE_LOCATION}/${ZIMAGE} ${SOURCE_DIR}/${ANYKERNEL_DIR}/zImage >> ${BUILD_LOG} 2>&1
-}
+    make ${DEFCONFIG}
+    make ${THREAD}
+    cp -vr ${ZIMAGE_LOCATION}/${ZIMAGE} ${SOURCE_DIR}/${ANYKERNEL_DIR}/zImage
+} &>>$BUILD_LOG
 
 function make_modules {
     rm -rf ${SOURCE_DIR}/${ANYKERNEL_DIR}/modules/*.ko
-    find ${SOURCE_DIR}/${KERNEL_DIR} -name '*.ko' -exec cp -v {} ${SOURCE_DIR}/${ANYKERNEL_DIR}/modules \; >> ${BUILD_LOG} 2>&1
-}
+    find ${SOURCE_DIR}/${KERNEL_DIR} -name '*.ko' -exec cp -v {} ${SOURCE_DIR}/${ANYKERNEL_DIR}/modules \;
+} &>>$BUILD_LOG
 
 function make_dtb {
-    ${SOURCE_DIR}/${ANYKERNEL_DIR}/tools/dtbToolCM -v2 -o ${SOURCE_DIR}/${ANYKERNEL_DIR}/${DTB} -s 2048 -p scripts/dtc/ ${ZIMAGE_LOCATION}/dts/ >> ${BUILD_LOG} 2>&1
-}
+    ${SOURCE_DIR}/${ANYKERNEL_DIR}/tools/dtbToolCM -v2 -o ${SOURCE_DIR}/${ANYKERNEL_DIR}/${DTB} -s 2048 -p scripts/dtc/ ${ZIMAGE_LOCATION}/dts/
+} &>>$BUILD_LOG
 
 function make_zip {
     cd ${SOURCE_DIR}/${ANYKERNEL_DIR}
     zip -x@zipexclude -r9 `echo ${RELEASE}`.zip * >> $BUILD_LOG 2>&1
-    mv  `echo ${RELEASE}`.zip ${SOURCE_DIR}/${OUTPUT_DIR} >> ${BUILD_LOG} 2>&1
+    mv  `echo ${RELEASE}`.zip ${SOURCE_DIR}/${OUTPUT_DIR}
     cd ${SOURCE_DIR}/${KERNEL_DIR}
-}
+} &>>$BUILD_LOG
 
 DATE_START=$(date +"%s")
+
+if [[ ! -e ${BUILD_LOG} ]]; then
+    touch ${BUILD_LOG}
+fi
 
 clear
 
