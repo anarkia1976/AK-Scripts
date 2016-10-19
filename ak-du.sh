@@ -137,14 +137,14 @@ function soft_clean {
 
 function make_sync {
     cd ${HOME_DIR}/${ROM_DIR}
-    repo sync
+    repo sync --force-sync ${THREAD}
 } &>>$BUILD_LOG
 
 function make_rom {
     cd ${HOME_DIR}/${ROM_DIR}
     . build/envsetup.sh
     lunch ${DEVICE}
-    time make ${THREAD} bacon
+    time mka bacon
 } &>>$BUILD_LOG
 
 DATE_START=$(date +"%s")
@@ -301,7 +301,7 @@ case "${dchoice}" in
 	y|Y)
 		echo
 		start_spinner BUILDING
-        make_rom
+                make_rom
 		stop_spinner ALL DONE
 		break
 		;;
