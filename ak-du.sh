@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# AK Kernel build script
+# AK Rom build script
 #
 # Copyright (C) 2016 @anarkia1976
 #
