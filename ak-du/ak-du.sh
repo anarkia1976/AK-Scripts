@@ -27,6 +27,7 @@ red="\e[1;31m"
 magenta="\e[1;35m"
 cyan="\e[1;36m"
 yellow="\e[1;33m"
+blue="\e[1;34m"
 restore="\e[0m"
 blink_red="\e[05;31m"
 bold="\e[1m"
@@ -118,6 +119,7 @@ function stop_spinner {
 
 function hard_clean {
     cd ${HOME_DIR}/${ROM_DIR}
+	echo -e "${bold}${blue}Hard Clean ==========================================================${restore}"
     ccache -c
     ccache -C
     make clobber
@@ -126,25 +128,39 @@ function hard_clean {
     lunch ${DEVICE}
     make clobber
     make installclean
+	echo
 } &>>$BUILD_LOG
 
 function soft_clean {
     cd ${HOME_DIR}/${ROM_DIR}
+	echo -e "${bold}${blue}Soft Clean ==========================================================${restore}"
     . build/envsetup.sh
     lunch ${DEVICE}
     make clobber
+	echo
 } &>>$BUILD_LOG
 
 function make_sync {
+    echo -e "${bold}${blue}Syncing ==========================================================${restore}"
     cd ${HOME_DIR}/${ROM_DIR}
     repo sync --force-sync ${THREAD}
+	echo
 } &>>$BUILD_LOG
 
 function make_rom {
     cd ${HOME_DIR}/${ROM_DIR}
+	echo -e "${bold}${blue}Syncing ==========================================================${restore}"
     . build/envsetup.sh
     lunch ${DEVICE}
     time mka bacon
+	echo
+} &>>$BUILD_LOG
+
+function make_changelog {
+    cd ${HOME_DIR}/${ROM_DIR}
+	echo -e "${bold}${blue}Changelog ==========================================================${restore}"
+    . generate_changelog.sh
+	echo
 } &>>$BUILD_LOG
 
 DATE_START=$(date +"%s")
@@ -188,54 +204,26 @@ echo -en "${white}"
 echo '======================================================================='
 echo -en "${restore}"
 echo
-echo
-echo
 echo -en "${white}"
 echo '======================================================================='
-echo ' HARD CLEANING'
+echo ' CLEANING'
 echo '======================================================================='
 echo -en "${restore}"
 echo
-while read -p "` echo -e " ${red}Y / N${restore} : "`" cchoice
+while read -p "` echo -e " ${red}H${restore} (hard) / ${red}S${restore} (soft) / ${red}N${restore} (none) : "`" cchoice
 do
 case "${cchoice}" in
-	y|Y )
+	h|H )
 		echo
 		start_spinner CLEANING 
 		hard_clean 
 		stop_spinner ALL DONE
 		break
 		;;
-	n|N )
-		break
-		;;
-	* )
-		echo
-		echo "     ... INVALID TRY AGAIN ..."
-		echo
-		;;
-esac
-done
-echo
-echo -en "${white}"
-echo '======================================================================='
-echo -en "${restore}"
-echo
-echo
-echo
-echo -en "${white}"
-echo '======================================================================='
-echo ' SOFT CLEANING'
-echo '======================================================================='
-echo -en "${restore}"
-echo
-while read -p "` echo -e " ${red}Y / N${restore} : "`" cchoice
-do
-case "${cchoice}" in
-	y|Y )
+	s|S )
 		echo
 		start_spinner CLEANING 
-		soft_clean
+		soft_clean 
 		stop_spinner ALL DONE
 		break
 		;;
@@ -253,8 +241,6 @@ echo
 echo -en "${white}"
 echo '======================================================================='
 echo -en "${restore}"
-echo
-echo
 echo
 echo -en "${white}"
 echo '======================================================================='
@@ -262,7 +248,7 @@ echo ' SYNCING'
 echo '======================================================================='
 echo -en "${restore}"
 echo
-while read -p "` echo -e " ${red}Y / N${restore} : "`" cchoice
+while read -p "` echo -e " ${red}Y${restore} (yes) / ${red}N${restore} (no) : "`" cchoice
 do
 case "${cchoice}" in
 	y|Y )
@@ -287,8 +273,6 @@ echo -en "${white}"
 echo '======================================================================='
 echo -en "${restore}"
 echo
-echo
-echo
 echo -en "${white}"
 echo '======================================================================='
 echo ' BUILDING'
@@ -301,7 +285,8 @@ case "${dchoice}" in
 	y|Y)
 		echo
 		start_spinner BUILDING
-                make_rom
+        make_rom
+		make_changelog
 		stop_spinner ALL DONE
 		break
 		;;
@@ -320,8 +305,6 @@ echo -en "${white}"
 echo '======================================================================='
 echo -en "${restore}"
 echo
-echo
-echo
 echo -en "${white}"
 echo '======================================================================='
 echo ' ALL DONE'
@@ -330,13 +313,12 @@ echo -en "${restore}"
 echo
 DATE_END=$(date +"%s")
 DIFF=$((${DATE_END} - ${DATE_START}))
-echo -e "${red}DEVICE${restore}  : ${DEVICE}"
-echo -e "${red}TIME${restore}    : $((${DIFF} / 60)) minute(s) and $((${DIFF} % 60)) second(s)"
-echo -e "${red}LOG DIR${restore} : ${BUILD_LOG}"
+echo -e "${red}DEVICE${restore}    : ${DEVICE}"
+echo -e "${red}TIME${restore}      : $((${DIFF} / 60)) minute(s) and $((${DIFF} % 60)) second(s)"
+echo -e "${red}CHANGELOG${restore} : ${CHANGELOG}"
+echo -e "${red}BUILD LOG${restore} : ${BUILD_LOG}"
 echo
 echo -en "${white}"
 echo '======================================================================='
 echo -en "${restore}"
-echo
-echo
 echo
