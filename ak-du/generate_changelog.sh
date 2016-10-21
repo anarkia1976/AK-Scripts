@@ -14,7 +14,7 @@ CUSTOM_DATE="$1"
 # generate Changelog
 if [ -z "${CUSTOM_DATE}" ]; then
     if [ -z "${LAST_DATE}" ]; then
-        WORKING_DATE=`date +%s -d "1 day ago"`
+        WORKING_DATE=`date +%s -d "7 day ago"`
     else
         WORKING_DATE=${LAST_DATE}
     fi
