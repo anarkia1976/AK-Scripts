@@ -43,6 +43,7 @@ CURRENT_DATE=`date +%Y%m%d`
 CURRENT_TIME=`date +%H-%M-%S`
 BUILD_LOG="/tmp/${CURRENT_DATE}_${CURRENT_TIME}_${ROM}.log"
 THREAD="-j$(grep -c ^processor /proc/cpuinfo)"
+CHG="No Build ~ No Party"
 
 # path locations
 HOME_DIR="${HOME}/ak-backup/rom"
@@ -159,7 +160,12 @@ function make_rom {
 function make_changelog {
     cd ${HOME_DIR}/${ROM_DIR}
 	echo -e "${bold}${blue}Changelog ==========================================================${restore}"
-    . generate_changelog.sh
+	. generate_changelog.sh
+	if [[ -e generate_changelog.sh ]]; then
+        CHG="${CHANGELOG}"
+    else
+        CHG="Changelog Script is not present"
+    fi
 	echo
 } &>>$BUILD_LOG
 
@@ -279,7 +285,7 @@ echo ' BUILDING'
 echo '======================================================================='
 echo -en "${restore}"
 echo
-while read -p "` echo -e " ${red}Y / N${restore} : "`" dchoice
+while read -p "` echo -e " ${red}Y${restore} (yes) / ${red}N${restore} (no) : "`" dchoice
 do
 case "${dchoice}" in
 	y|Y)
@@ -315,7 +321,7 @@ DATE_END=$(date +"%s")
 DIFF=$((${DATE_END} - ${DATE_START}))
 echo -e "${red}DEVICE${restore}    : ${DEVICE}"
 echo -e "${red}TIME${restore}      : $((${DIFF} / 60)) minute(s) and $((${DIFF} % 60)) second(s)"
-echo -e "${red}CHANGELOG${restore} : ${CHANGELOG}"
+echo -e "${red}CHANGELOG${restore} : ${CHG}"
 echo -e "${red}BUILD LOG${restore} : ${BUILD_LOG}"
 echo
 echo -en "${white}"
