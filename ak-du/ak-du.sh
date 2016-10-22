@@ -150,7 +150,7 @@ function make_sync {
 
 function make_rom {
     cd ${HOME_DIR}/${ROM_DIR}
-	echo -e "${bold}${blue}Syncing ==========================================================${restore}"
+	echo -e "${bold}${blue}Building ==========================================================${restore}"
     . build/envsetup.sh
     lunch ${DEVICE}
     time mka bacon
