@@ -27,6 +27,7 @@ red="\e[1;31m"
 magenta="\e[1;35m"
 cyan="\e[1;36m"
 yellow="\e[1;33m"
+blue="\e[1;34m"
 restore="\e[0m"
 blink_red="\e[05;31m"
 bold="\e[1m"
@@ -34,28 +35,28 @@ invert="\e[7m"
 
 # kernel version
 KERNEL="AK"
-VERSION="666"
-BASE="N"
-DEVICE="ANGLER"
+VERSION="001"
+BASE="M"
+DEVICE="GEMINI"
 RELEASE="${KERNEL}.${VERSION}.${BASE}.${DEVICE}"
 
 # local variables
 CURRENT_DATE=`date +%Y%m%d`
 CURRENT_TIME=`date +%H-%M-%S`
-BUILD_LOG="/tmp/${CURRENT_DATE}_${CURRENT_TIME}_${RELEASE}.log"
+BUILD_LOG="/tmp/${CURRENT_DATE}_${RELEASE}.log"
 THREAD="-j$(grep -c ^processor /proc/cpuinfo)"
 
 # kernel resources
 ZIMAGE="Image.gz"
 ZIMAGE_LOCATION="arch/arm64/boot"
 DTB="dtb"
-DEFCONFIG="ak_angler_defconfig"
+DEFCONFIG="ak_gemini_defconfig"
 TOOLCHAIN_CC="bin/aarch64-linux-android-"
 
 # path locations
 SOURCE_DIR="${HOME}/android"
-KERNEL_DIR="AK-UnicornBlood"
-ANYKERNEL_DIR="AK-UnicornBlood-AnyKernel2"
+KERNEL_DIR="AK-Gemini"
+ANYKERNEL_DIR="AK-Gemini-AnyKernel2"
 OUTPUT_DIR="AK-releases"
 TOOLCHAIN_DIR="AK-uber64-4.9-linaro"
 
@@ -138,6 +139,7 @@ function stop_spinner {
 
 function clean_all {
     cd ${SOURCE_DIR}/${ANYKERNEL_DIR}
+    echo -e "${bold}${blue}Clean ==============================================================${restore}"
     rm -rf modules/*.ko
     rm -rf zImage
     rm -rf ${DTB}
@@ -146,29 +148,38 @@ function clean_all {
     cd ${SOURCE_DIR}/${KERNEL_DIR}
     make clean
     make mrproper
+    echo
 } &>>$BUILD_LOG
 
 function make_kernel {
     cd ${SOURCE_DIR}/${KERNEL_DIR}
+    echo -e "${bold}${blue}Make ===============================================================${restore}"
     make ${DEFCONFIG}
     make ${THREAD}
     cp -vr ${ZIMAGE_LOCATION}/${ZIMAGE} ${SOURCE_DIR}/${ANYKERNEL_DIR}/zImage
+    echo
 } &>>$BUILD_LOG
 
 function make_modules {
+    echo -e "${bold}${blue}Modules ============================================================${restore}"
     rm -rf ${SOURCE_DIR}/${ANYKERNEL_DIR}/modules/*.ko
     find ${SOURCE_DIR}/${KERNEL_DIR} -name '*.ko' -exec cp -v {} ${SOURCE_DIR}/${ANYKERNEL_DIR}/modules \;
+    echo
 } &>>$BUILD_LOG
 
 function make_dtb {
+    echo -e "${bold}${blue}Dtb ================================================================${restore}"
     ${SOURCE_DIR}/${ANYKERNEL_DIR}/tools/dtbToolCM -v2 -o ${SOURCE_DIR}/${ANYKERNEL_DIR}/${DTB} -s 2048 -p scripts/dtc/ ${ZIMAGE_LOCATION}/dts/
+    echo
 } &>>$BUILD_LOG
 
 function make_zip {
+    echo -e "${bold}${blue}Zip ================================================================${restore}"
     cd ${SOURCE_DIR}/${ANYKERNEL_DIR}
     zip -x@zipexclude -r9 `echo ${RELEASE}`.zip * >> $BUILD_LOG 2>&1
     mv  `echo ${RELEASE}`.zip ${SOURCE_DIR}/${OUTPUT_DIR}
     cd ${SOURCE_DIR}/${KERNEL_DIR}
+	echo
 } &>>$BUILD_LOG
 
 DATE_START=$(date +"%s")
@@ -227,8 +238,6 @@ echo -en "${white}"
 echo '============================================'
 echo -en "${restore}"
 echo
-echo
-echo
 echo -en "${white}"
 echo '============================================'
 echo ' CLEANING                                   '
@@ -259,8 +268,6 @@ echo
 echo -en "${white}"
 echo '============================================'
 echo -en "${restore}"
-echo
-echo
 echo
 echo -en "${white}"
 echo '============================================'
@@ -296,8 +303,6 @@ echo -en "${white}"
 echo '============================================'
 echo -en "${restore}"
 echo
-echo
-echo
 echo -en "${white}"
 echo '============================================'
 echo ' ALL DONE                                   '
@@ -309,12 +314,10 @@ DIFF=$((${DATE_END} - ${DATE_START}))
 echo -e "${red}DEVICE${restore}  : ${DEVICE}"
 echo -e "${red}VERSION${restore} : v.${VERSION}"
 echo -e "${red}BASE${restore}    : ${BASE}"
-echo -e "${red}BUILD${restore}   : $((${DIFF} / 60)) minute(s) and $((${DIFF} % 60)) second(s)"
+echo -e "${red}TIME${restore}    : $((${DIFF} / 60)) minute(s) and $((${DIFF} % 60)) second(s)"
 echo -e "${red}LOG DIR${restore} : ${BUILD_LOG}"
 echo
 echo -en "${white}"
 echo '============================================'
 echo -en "${restore}"
-echo
-echo
 echo
